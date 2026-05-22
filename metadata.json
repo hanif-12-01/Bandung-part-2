@@ -1,0 +1,8 @@
+{
+  "name": "CampusCare AI",
+  "description": "Satu pintu untuk menemukan layanan kampus yang tepat dan membuat draf laporan otomatis berbasis AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
