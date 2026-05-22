@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Header from "./components/Header";
 import Beranda from "./components/Beranda";
 import CariLayanan from "./components/CariLayanan";
@@ -6,12 +6,19 @@ import GuidelineDetail from "./components/GuidelineDetail";
 import AIKonsultasi from "./components/AIKonsultasi";
 import BuatDraftLaporan from "./components/BuatDraftLaporan";
 import InsightDashboard from "./components/InsightDashboard";
+import Riwayat, { ViewedGuideline } from "./components/Riwayat";
+import LandingPage from "./components/LandingPage";
 
 import { CampusService, Message, DraftReport, CampusProblem } from "./types";
 import { INITIAL_SERVICES, INITIAL_PROBLEMS } from "./data";
 
 export default function App() {
   
+  // User Role State
+  const [userRole, setUserRole] = useState<"mahasiswa" | "dosen" | "pegawai" | null>(() => {
+    return (localStorage.getItem("campus_care_user_role") as any) || null;
+  });
+
   // App routing state
   const [currentTab, setCurrentTab] = useState<string>("home");
   
@@ -21,12 +28,24 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedFilterCategory, setSelectedFilterCategory] = useState<string>("Semua");
   
+  // Filtered services based on role
+  const filteredServices = useMemo(() => {
+    return services.filter(svc => !svc.roles || svc.roles.includes(userRole as any));
+  }, [services, userRole]);
+  
   // prefilled values for writing draft
   const [prefilledService, setPrefilledService] = useState<CampusService | null>(null);
+  const [prefilledDraft, setPrefilledDraft] = useState<DraftReport | null>(null);
 
   // Saved Drafts local states
   const [savedDrafts, setSavedDrafts] = useState<DraftReport[]>(() => {
     const saved = localStorage.getItem("campus_care_saved_drafts");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Viewed Guidelines local history states
+  const [viewedGuidelines, setViewedGuidelines] = useState<ViewedGuideline[]>(() => {
+    const saved = localStorage.getItem("campus_care_viewed_guidelines");
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -37,22 +56,39 @@ export default function App() {
   });
 
   // AI Consultation Messages logs
-  const [messages, setMessages] = useState<Message[]>(() => {
-    return [
-      {
-        id: "msg-welcome",
-        sender: "ai",
-        text: "Halo! Selamat datang di CampusCare AI, Navigator Layanan Kampus Terpadu.\n\nSaya asisten kecerdasan buatan bentukan Pusat Sistem Informasi Universitas yang siap membantu Anda dalam:\n1. Mencari alur & berkas resmi pengurusan surat aktif, KRS, UKT, atau SSO.\n2. Berdiskusi interaktif menuntaskan isu teknis portal kuliah.\n3. Menyusun draf email keluhan / surat permohonan akademis formal secara otomatis.\n\nAda kendala sistem atau administrasi sekolah yang bisa saya bantu arahkan hari ini?",
-        timestamp: new Date()
-      }
-    ];
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isChatLoading, setIsChatLoading] = useState<boolean>(false);
+
+  // Dynamic Welcome Message on Role changes
+  useEffect(() => {
+    if (userRole) {
+      let welcomeText = "";
+      if (userRole === "mahasiswa") {
+        welcomeText = "Halo! Selamat datang di CampusCare AI, Navigator Layanan Kampus Terpadu.\n\nSaya asisten kecerdasan buatan bentukan Pusat Sistem Informasi Universitas yang siap membantu Anda sebagai Mahasiswa.\n\nAda kendala SSO login, KRS, UKT/keuangan, LMS CeLOE, Open Library, WiFi, atau kemahasiswaan yang bisa saya bantu arahkan hari ini?";
+      } else if (userRole === "dosen") {
+        welcomeText = "Halo! Selamat datang di CampusCare AI, Navigator Layanan Kampus Terpadu.\n\nSaya asisten kecerdasan buatan bentukan Pusat Sistem Informasi Universitas yang siap membantu Anda sebagai Dosen.\n\nAda kendala LMS CeLOE pengajaran, presensi/iGracias, BKD/JAFA, penelitian/pengabdian, VPN, atau peminjaman lab/ruang rapat hari ini?";
+      } else if (userRole === "pegawai") {
+        welcomeText = "Halo! Selamat datang di CampusCare AI, Navigator Layanan Kampus Terpadu.\n\nSaya asisten kecerdasan buatan bentukan Pusat Sistem Informasi Universitas yang siap membantu Anda sebagai Pegawai Kampus.\n\nAda kendala operasional, nota dinas/surat tugas internal, IT support unit, logistik/ATK, kepegawaian SDM, ticket helpdesk unit, atau knowledge base SOP hari ini?";
+      }
+      setMessages([
+        {
+          id: "msg-welcome-" + userRole,
+          sender: "ai",
+          text: welcomeText,
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, [userRole]);
 
   // Persist storage updates
   useEffect(() => {
     localStorage.setItem("campus_care_saved_drafts", JSON.stringify(savedDrafts));
   }, [savedDrafts]);
+
+  useEffect(() => {
+    localStorage.setItem("campus_care_viewed_guidelines", JSON.stringify(viewedGuidelines));
+  }, [viewedGuidelines]);
 
   useEffect(() => {
     localStorage.setItem("campus_care_saved_problems", JSON.stringify(problems));
@@ -88,7 +124,7 @@ export default function App() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMsgs })
+        body: JSON.stringify({ messages: updatedMsgs, role: userRole })
       });
 
       if (!response.ok) {
@@ -118,11 +154,19 @@ export default function App() {
   };
 
   const handleClearChat = () => {
+    let welcomeText = "Riwayat percakapan telah dibersihkan.";
+    if (userRole === "mahasiswa") {
+      welcomeText += " Hubungi saya kembali jika Anda membutuhkan navigasi alur akademik mahasiswa atau pengaduan baru.";
+    } else if (userRole === "dosen") {
+      welcomeText += " Hubungi saya kembali jika Anda membutuhkan navigasi LMS pengajaran, presensi, BKD, atau layanan dosen lainnya.";
+    } else if (userRole === "pegawai") {
+      welcomeText += " Hubungi saya kembali jika Anda membutuhkan navigasi nota dinas internal, IT support, SDM, atau operasional pegawai lainnya.";
+    }
     setMessages([
       {
-        id: "msg-welcome-clear",
+        id: "msg-welcome-clear-" + userRole,
         sender: "ai",
-        text: "Riwayat percakapan telah dibersihkan. Hubungi saya kembali jika Anda membutuhkan navigasi alur akademik atau pembentukan draf laporan AI baru.",
+        text: welcomeText,
         timestamp: new Date()
       }
     ]);
@@ -132,27 +176,83 @@ export default function App() {
   const handleSelectService = (service: CampusService) => {
     setSelectedService(service);
     setCurrentTab("guideline");
+    
+    // Add to viewedGuidelines history
+    const newViewed: ViewedGuideline = {
+      id: "vg-" + Math.random().toString(36).substring(2, 9),
+      serviceId: service.id,
+      title: service.title,
+      category: service.category,
+      tanggalDilihat: new Date().toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    };
+    
+    setViewedGuidelines((prev) => [
+      newViewed,
+      ...prev.filter((item) => item.serviceId !== service.id)
+    ]);
+  };
+
+  const handleSelectServiceById = (serviceId: string) => {
+    const service = services.find((s) => s.id === serviceId);
+    if (service) {
+      handleSelectService(service);
+    }
   };
 
   const handleNavigateToDraft = (service: CampusService) => {
     setPrefilledService(service);
+    setPrefilledDraft(null);
     setCurrentTab("drafter");
   };
 
   // Saved draft list controllers
   const handleSaveDraft = (draft: DraftReport) => {
-    setSavedDrafts((prev) => [draft, ...prev.filter((d) => d.generatedLetter !== d.generatedLetter)]);
+    setSavedDrafts((prev) => [draft, ...prev.filter((d) => d.id !== draft.id)]);
   };
 
   const handleDeleteDraft = (id: string) => {
     setSavedDrafts((prev) => prev.filter((d) => d.id !== id));
   };
 
+  const handleLoadDraft = (draft: DraftReport) => {
+    setPrefilledDraft(draft);
+    setPrefilledService(null);
+    setCurrentTab("drafter");
+  };
+
+  const handleClearViewedGuidelines = () => {
+    setViewedGuidelines([]);
+  };
+
+  if (userRole === null) {
+    return (
+      <LandingPage
+        onSelectRole={(role) => {
+          setUserRole(role);
+          localStorage.setItem("campus_care_user_role", role);
+          setCurrentTab("home");
+        }}
+        lastRole={localStorage.getItem("campus_care_user_role") as any}
+      />
+    );
+  }
+
   return (
-    <div id="app-root-container" className="min-h-screen bg-gray-50/20 text-gray-900 font-sans selection:bg-teal-100 selection:text-teal-900 flex flex-col">
+    <div id="app-root-container" className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans selection:bg-rose-100 selection:text-rose-900 flex flex-col">
       {/* Universal Sticky Header Navigation */}
       <Header
         currentTab={currentTab}
+        userRole={userRole}
+        onLogoutRole={() => {
+          setUserRole(null);
+          setCurrentTab("home");
+        }}
         onTabChange={(tab) => {
           setCurrentTab(tab);
           // Clean selection states if leaving sub-detail views
@@ -165,11 +265,12 @@ export default function App() {
       />
 
       {/* Main Container Views Wrapper */}
-      <main id="app-viewport" className="flex-1 pb-10">
+      <main id="app-viewport" className="flex-grow pb-10">
         
         {currentTab === "home" && (
           <Beranda
-            services={services}
+            services={filteredServices}
+            userRole={userRole}
             onTabChange={setCurrentTab}
             onSelectCategory={(cat) => {
               setSelectedFilterCategory(cat);
@@ -182,9 +283,10 @@ export default function App() {
 
         {currentTab === "browse" && (
           <CariLayanan
-            services={services}
+            services={filteredServices}
             filterCategory={selectedFilterCategory}
             searchQuery={searchQuery}
+            userRole={userRole}
             onSelectCategory={setSelectedFilterCategory}
             onSearchQuery={setSearchQuery}
             onSelectService={handleSelectService}
@@ -205,9 +307,10 @@ export default function App() {
 
         {currentTab === "chat" && (
           <AIKonsultasi
-            services={services}
+            services={filteredServices}
             messages={messages}
             isLoading={isChatLoading}
+            userRole={userRole}
             onSendMessage={handleSendMessage}
             onClearChat={handleClearChat}
             onNavigateToDraft={handleNavigateToDraft}
@@ -216,11 +319,24 @@ export default function App() {
 
         {currentTab === "drafter" && (
           <BuatDraftLaporan
-            services={services}
+            services={filteredServices}
             prefilledService={prefilledService}
+            prefilledDraft={prefilledDraft}
             savedDrafts={savedDrafts}
+            userRole={userRole}
             onSaveDraft={handleSaveDraft}
             onDeleteDraft={handleDeleteDraft}
+          />
+        )}
+
+        {currentTab === "history" && (
+          <Riwayat
+            savedDrafts={savedDrafts}
+            viewedGuidelines={viewedGuidelines}
+            onDeleteDraft={handleDeleteDraft}
+            onLoadDraft={handleLoadDraft}
+            onSelectServiceById={handleSelectServiceById}
+            onClearViewedGuidelines={handleClearViewedGuidelines}
           />
         )}
 
@@ -235,13 +351,13 @@ export default function App() {
       </main>
 
       {/* Footer Navigation Credits */}
-      <footer id="footer-container" className="mt-auto py-8 bg-white border-t border-gray-150 text-center">
+      <footer id="footer-container" className="mt-auto py-8 bg-white border-t border-slate-200/80 text-center">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p id="footer-logo" className="text-sm font-bold text-gray-800">
-            CampusCare <span className="text-teal-600">AI</span>
+          <p id="footer-logo" className="text-sm font-bold text-slate-800">
+            CampusCare <span className="text-rose-700">AI</span>
           </p>
-          <p id="footer-credits" className="text-xs text-gray-400 mt-2">
-            © {new Date().getFullYear()} Universitas Cerdas Indonesia. Pusat Layanan Teknologi Informasi & Administrasi Akademik Terpadu.
+          <p id="footer-credits" className="text-xs text-slate-400 mt-2">
+            © 2026 CampusCare AI — Satu Pintu untuk Menemukan Layanan Kampus yang Tepat.
           </p>
         </div>
       </footer>

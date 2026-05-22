@@ -1,13 +1,14 @@
 export interface CampusService {
   id: string;
   title: string;
-  category: "Akademik" | "IT & Jaringan" | "Keuangan" | "Fasilitas" | "Sistem Akun";
+  category: string;
   description: string;
   recommendation: string;
   officialChannel: string;
   searchCount: number;
   steps?: string[];
   requiredDetails?: string[];
+  roles?: ("mahasiswa" | "dosen" | "pegawai")[];
 }
 
 export interface Message {

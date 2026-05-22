@@ -1,24 +1,64 @@
 import React, { useState } from "react";
-import { Search, KeyRound, BookOpen, Wallet, Wifi, ShieldCheck, ArrowRight, Activity, HelpCircle } from "lucide-react";
+import { Search, KeyRound, BookOpen, Wallet, Wifi, LayoutGrid, Building, ArrowRight, ShieldCheck, CircleHelp } from "lucide-react";
 import { CampusService } from "../types";
 
 interface BerandaProps {
   services: CampusService[];
+  userRole: "mahasiswa" | "dosen" | "pegawai" | null;
   onTabChange: (tab: string) => void;
   onSelectCategory: (category: string) => void;
   onSearchQuery: (query: string) => void;
   onSelectService: (service: CampusService) => void;
 }
 
-export default function Beranda({ services, onTabChange, onSelectCategory, onSearchQuery, onSelectService }: BerandaProps) {
+export default function Beranda({ services, userRole, onTabChange, onSelectCategory, onSearchQuery, onSelectService }: BerandaProps) {
   const [searchVal, setSearchVal] = useState("");
 
-  const popularCats = [
-    { title: "AKUN & SSO", code: "Sistem Akun", desc: "Masalah autentikasi & sandi kampus", icon: KeyRound, bg: "bg-neutral-900 text-[#ff4d00]" },
-    { title: "AKADEMIK", code: "Akademik", desc: "Surat aktif kuliah, KRS, berkas administrasi", icon: BookOpen, bg: "bg-neutral-900 text-[#ffbb00]" },
-    { title: "KEUANGAN & UKT", code: "Keuangan", desc: "Cicilan, VA, keringanan ukt terpadu", icon: Wallet, bg: "bg-neutral-900 text-[#00f2fe]" },
-    { title: "IT & JARINGAN", code: "IT & Jaringan", desc: "Registrasi MAC, wifi secure kampus", icon: Wifi, bg: "bg-neutral-900 text-[#49f310]" }
-  ];
+  const categoriesByRole = {
+    mahasiswa: [
+      { title: "Akun & SSO", code: "Akun & SSO", desc: "Reset password SSO & KTM", icon: KeyRound, bg: "bg-rose-50 text-rose-600 border-rose-100/50" },
+      { title: "Akademik", code: "Akademik", desc: "Surat aktif kuliah, KRS, berkas", icon: BookOpen, bg: "bg-blue-50 text-blue-600 border-blue-100/50" },
+      { title: "IT & Jaringan", code: "IT & Jaringan", desc: "Wifi secure, MAC address", icon: Wifi, bg: "bg-indigo-50 text-indigo-600 border-indigo-100/50" },
+      { title: "Keuangan", code: "Keuangan", desc: "Cicilan, VA, keringanan UKT", icon: Wallet, bg: "bg-emerald-50 text-emerald-600 border-emerald-100/50" },
+      { title: "LMS/CeLOE", code: "LMS/CeLOE", desc: "Sinkronisasi kelas kuliah", icon: LayoutGrid, bg: "bg-purple-50 text-purple-600 border-purple-100/50" },
+      { title: "Fasilitas", code: "Fasilitas", desc: "Peminjaman ruang, perpustakaan", icon: Building, bg: "bg-amber-50 text-amber-600 border-amber-100/50" }
+    ],
+    dosen: [
+      { title: "LMS Pengajaran", code: "LMS/CeLOE", desc: "Kelola nilai & kelas LMS", icon: LayoutGrid, bg: "bg-purple-50 text-purple-600 border-purple-100/50" },
+      { title: "Sistem Akademik", code: "Sistem Akademik", desc: "iGracias & portal SIAKAD", icon: BookOpen, bg: "bg-blue-50 text-blue-600 border-blue-100/50" },
+      { title: "Akun & SSO", code: "Akun & SSO", desc: "Akun iGracias & e-mail dosen", icon: KeyRound, bg: "bg-rose-50 text-rose-600 border-rose-100/50" },
+      { title: "Penelitian & Abdimas", code: "Penelitian & Pengabdian", desc: "Hibah internal & jurnal", icon: Wallet, bg: "bg-emerald-50 text-emerald-600 border-emerald-100/50" },
+      { title: "Administrasi Dosen", code: "Administrasi Dosen", desc: "BKD, JAFA, & kepangkatan", icon: Building, bg: "bg-amber-50 text-amber-600 border-amber-100/50" },
+      { title: "Akses VPN/WiFi", code: "IT & Jaringan", desc: "Akses luar kampus & WiFi secure", icon: Wifi, bg: "bg-indigo-50 text-indigo-600 border-indigo-100/50" }
+    ],
+    pegawai: [
+      { title: "Admin Internal", code: "Administrasi Internal", desc: "Nota dinas & surat tugas", icon: BookOpen, bg: "bg-blue-50 text-blue-600 border-blue-100/50" },
+      { title: "IT & Sistem", code: "IT & Sistem", desc: "E-office & database unit", icon: KeyRound, bg: "bg-rose-50 text-rose-600 border-rose-100/50" },
+      { title: "Logistik & Sarpras", code: "Logistik & Fasilitas", desc: "Pengadaan ATK & logistik", icon: Building, bg: "bg-amber-50 text-amber-600 border-amber-100/50" },
+      { title: "Layanan SDM", code: "SDM", desc: "Cuti, kesehatan, slip gaji", icon: Wallet, bg: "bg-emerald-50 text-emerald-600 border-emerald-100/50" },
+      { title: "Helpdesk Unit", code: "Helpdesk Unit", desc: "Sistem tiket penanganan unit", icon: LayoutGrid, bg: "bg-purple-50 text-purple-600 border-purple-100/50" },
+      { title: "SOP & KB", code: "Knowledge Base", desc: "Dokumen SOP standar unit", icon: Wifi, bg: "bg-indigo-50 text-indigo-600 border-indigo-100/50" }
+    ]
+  };
+
+  const currentRole = userRole || "mahasiswa";
+  const categories = categoriesByRole[currentRole];
+
+  const keywordsByRole = {
+    mahasiswa: ["Reset SSO", "Surat Aktif Kuliah", "KRS", "LMS", "Cicilan UKT"],
+    dosen: ["Sinkronisasi LMS", "Input Nilai iGracias", "Hibah Penelitian", "Pengajuan BKD", "Akses VPN Kampus"],
+    pegawai: ["E-Office Nota Dinas", "Pengadaan ATK", "Pengajuan Cuti SDM", "Tiket Helpdesk", "SOP Kerja Unit"]
+  };
+
+  const keywords = keywordsByRole[currentRole];
+
+  const placeholdersByRole = {
+    mahasiswa: "Contoh: saya tidak bisa login SSO / KRS / UKT...",
+    dosen: "Contoh: kendala LMS pengajaran / iGracias / BKD...",
+    pegawai: "Contoh: nota dinas internal / IT support / logistik..."
+  };
+
+  const placeholder = placeholdersByRole[currentRole];
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,56 +68,77 @@ export default function Beranda({ services, onTabChange, onSelectCategory, onSea
     }
   };
 
+  const handleAiStart = () => {
+    if (searchVal.trim()) {
+      onSearchQuery(searchVal);
+    }
+    onTabChange("chat");
+  };
+
   const trendServices = services.slice(0, 3);
 
   return (
-    <div id="beranda-screen" className="pb-20 bg-[#0a0a0a] text-white">
+    <div id="beranda-screen" className="pb-20 bg-slate-50/50 text-slate-800">
+      
       {/* Hero Banner Section */}
-      <section id="hero-section" className="relative overflow-hidden bg-[#0d0d0d] py-16 sm:py-24 border-b border-[#1a1a1a]">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(40rem_40rem_at_top,#261108,#0a0a0a)] opacity-60"></div>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-flex items-center gap-2 rounded-none bg-[#161616] px-4 py-2 text-xs font-mono font-bold tracking-widest text-[#ff4d00] border border-[#ff4d00]/30">
-            <ShieldCheck className="h-4 w-4" />
-            STANDARD_OPERATION_SUPPORT // UNIVERSITAS CERDAS
+      <section id="hero-section" className="relative overflow-hidden bg-white py-16 sm:py-24 border-b border-slate-100">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_20rem_at_top,#fff1f2,#ffffff)] opacity-70"></div>
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3.5 py-1.5 text-xs font-semibold text-rose-700 border border-rose-100/50 shadow-xs">
+            <ShieldCheck className="h-4 w-4 text-rose-700" />
+            Smart Service Navigator Universitas
           </span>
-          <h2 id="hero-heading" className="mt-8 text-4xl font-black tracking-tighter text-[#fff] sm:text-5xl lg:text-7xl uppercase">
-            SATU PORTAL PANDUAN <br />
-            <span className="bg-gradient-to-r from-[#ff4d00] to-[#ffaa00] bg-clip-text text-transparent">
-              LAYANAN AKADEMIS & IT
+          
+          <h2 id="hero-heading" className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+            Temukan Layanan Kampus <br className="hidden sm:inline" />
+            <span className="bg-gradient-to-r from-rose-700 to-rose-500 bg-clip-text text-transparent">
+              yang Tepat & Cepat
             </span>
           </h2>
-          <p id="hero-tagline" className="mx-auto mt-6 max-w-2xl text-sm font-mono tracking-wide text-[#8a8a8a]">
-            Dapatkan solusi instan atas kendala SSO, pengunduhan berkas, kebijakan ukt, hingga panduan KRS didampingi asisten kecerdasan buatan.
+          
+          <p id="hero-tagline" className="mx-auto mt-4 max-w-xl text-base text-slate-500 leading-relaxed">
+            Ceritakan masalahmu, CampusCare AI akan membantu mengarahkan ke kanal layanan yang sesuai.
           </p>
 
           {/* Centered Search Bar */}
-          <form id="hero-search-form" onSubmit={handleSearchSubmit} className="mx-auto mt-12 max-w-2xl">
-            <div className="relative flex items-center rounded-none bg-[#111] p-1 border border-[#2e2e2e] focus-within:border-[#ff4d00] transition-colors">
+          <form id="hero-search-form" onSubmit={handleSearchSubmit} className="mx-auto mt-10 max-w-2xl">
+            <div className="relative flex items-center rounded-2xl bg-white p-2 border border-slate-200 shadow-lg focus-within:border-rose-600 focus-within:ring-3 focus-within:ring-rose-100 transition-all">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <Search className="h-5 w-5 text-[#555]" />
+                <Search className="h-5 w-5 text-slate-400" />
               </div>
               <input
                 id="hero-search-input"
                 type="text"
                 value={searchVal}
                 onChange={(e) => setSearchVal(e.target.value)}
-                placeholder="Cari solusi alur... (Misal: 'KRS', 'Keringanan UKT')"
-                className="w-full rounded-none bg-transparent py-4 pl-12 pr-24 text-xs font-mono text-white placeholder-gray-600 focus:outline-hidden"
+                placeholder={placeholder}
+                className="w-full rounded-xl bg-transparent py-3.5 pl-11 pr-44 text-sm text-slate-800 placeholder-slate-400 focus:outline-hidden"
               />
-              <button
-                id="hero-search-btn"
-                type="submit"
-                className="absolute right-1 px-5 py-3 bg-[#ff4d00] hover:bg-white hover:text-black uppercase text-[10px] font-mono font-bold tracking-wider text-white rounded-none transition-all cursor-pointer"
-              >
-                CARI
-              </button>
+              <div className="absolute right-2 flex gap-2">
+                <button
+                  id="hero-search-ai-btn"
+                  type="button"
+                  onClick={handleAiStart}
+                  className="px-4 py-2.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+                >
+                  Mulai dengan AI Navigator
+                </button>
+                <button
+                  id="hero-search-manual-btn"
+                  type="submit"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                >
+                  Cari Manual
+                </button>
+              </div>
             </div>
           </form>
 
           {/* Mini Search Keywords */}
-          <div id="suggested-keywords" className="mt-6 flex flex-wrap items-center justify-center gap-2.5 text-xs font-mono">
-            <span className="text-[#555]">SHORTCUTS:</span>
-            {["SSO", "SURAT AKTIF", "KRS", "CICILAN UKT", "PANDUAN WIFI"].map((kw) => (
+          <div id="suggested-keywords" className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
+            <span className="text-slate-400 font-medium">Kata Kunci Populer:</span>
+            {keywords.map((kw) => (
               <button
                 key={kw}
                 onClick={() => {
@@ -85,7 +146,7 @@ export default function Beranda({ services, onTabChange, onSelectCategory, onSea
                   onSearchQuery(kw);
                   onTabChange("browse");
                 }}
-                className="text-[#aaa] hover:text-[#ff4d00] hover:border-[#ff4d00]/50 bg-[#121212] px-3.5 py-1.5 border border-[#1e1e1e] transition-all cursor-pointer uppercase text-[10px]"
+                className="text-slate-600 hover:text-rose-700 hover:bg-rose-50 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 transition-all cursor-pointer font-medium"
               >
                 {kw}
               </button>
@@ -94,106 +155,148 @@ export default function Beranda({ services, onTabChange, onSelectCategory, onSea
         </div>
       </section>
 
+
       {/* Main Content Area */}
-      <div id="beranda-content" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-16">
+      <div id="beranda-content" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-12">
         
-        {/* Info Notification Banner */}
-        <div id="info-banner" className="mb-16 rounded-none bg-[#0e0e0e] p-6 text-white border-2 border-dashed border-[#ff4d00]/30 relative">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#151515] border border-[#ff4d00]/20">
-                <Activity className="h-6 w-6 text-[#ff4d00]" />
-              </span>
-              <div>
-                <h3 className="text-sm font-bold tracking-wider font-mono uppercase text-[#f2f2f2]">Butuh Draf Laporan Pengaduan Formal Instan?</h3>
-                <p className="text-[#888] text-xs font-mono mt-1.5 max-w-2xl leading-relaxed">
-                  Gunakan tab Konsultasi AI untuk berinteraksi mengenai kendala administrasi. AI kami akan menyusun draf email keluhan kemahasiswaan formal secara dinamis.
-                </p>
+        {/* Banner Khusus Pegawai */}
+        {userRole === "pegawai" && (
+          <div className="mb-8 p-4 bg-rose-50/50 border border-rose-100 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-rose-100/60 rounded-xl text-rose-700">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div className="text-left">
+                <h4 className="text-sm font-bold text-slate-800">Panel Khusus Pegawai Aktif</h4>
+                <p className="text-xs text-slate-500">Anda dapat memantau aduan kritis civitas akademika dan status penyelesaian sistem.</p>
               </div>
             </div>
             <button
-              onClick={() => onTabChange("chat")}
-              className="inline-flex shrink-0 items-center gap-2 px-5 py-3 bg-[#ff4d00] text-black hover:bg-white hover:text-black transition-all cursor-pointer font-mono text-[10px] font-bold tracking-wider"
+              onClick={() => onTabChange("insight")}
+              className="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer"
             >
-              COBA CHAT AI
-              <ArrowRight className="h-4 w-4" />
+              Buka Dashboard Insight Admin
             </button>
           </div>
-        </div>
+        )}
 
         {/* 1. Popular Categories Grid */}
-        <div id="popular-categories-container" className="mb-16">
-          <div className="flex items-end justify-between mb-8 border-b border-[#1a1a1a] pb-4">
+        <div id="popular-categories-container" className="mb-14">
+          <div className="flex items-end justify-between mb-6">
             <div>
-              <span className="text-[10px] font-mono text-[#ff4d00] tracking-widest uppercase">Solusi Terpadu</span>
-              <h3 className="text-xl font-black text-white uppercase mt-1">KATEGORI LAYANAN POPULER</h3>
+              <h3 className="text-lg font-bold text-slate-900">Kategori Layanan Utama</h3>
+              <p className="text-sm text-slate-500 mt-1">Pilih kategori layanan kampus yang ingin kamu temukan panduannya.</p>
             </div>
             <button 
               onClick={() => {
                 onSelectCategory("Semua");
                 onTabChange("browse");
               }} 
-              className="text-[10px] font-mono font-bold text-[#ff4d00] hover:text-white flex items-center gap-1.5 transition-all"
+              className="text-sm font-semibold text-rose-700 hover:text-rose-800 flex items-center gap-1 transition-all"
             >
-              LIHAT SEMUA LAYANAN <ArrowRight className="h-3.5 w-3.5" />
+              Lihat Semua <ArrowRight className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {popularCats.map((cat) => {
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {categories.map((cat) => {
               const IconComp = cat.icon;
               return (
                 <div
                   key={cat.title}
                   id={`cat-card-${cat.title.toLowerCase().replace(/\s+/g, "-")}`}
                   onClick={() => {
+                    onSearchQuery("");
                     onSelectCategory(cat.code);
                     onTabChange("browse");
                   }}
-                  className="group relative cursor-pointer bg-[#0e0e0e] border border-[#1a1a1a] p-6 hover:border-[#ff4d00] transition-all duration-200"
+                  className="group relative cursor-pointer bg-white border border-slate-200/80 p-5 rounded-2xl hover:shadow-md hover:border-rose-200 transition-all duration-200 flex flex-col items-center text-center shadow-xs"
                 >
-                  <div className={`p-3 w-fit border border-neutral-800 ${cat.bg}`}>
-                    <IconComp className="h-5 w-5" />
+                  <div className={`p-3 rounded-xl border ${cat.bg}`}>
+                    <IconComp className="h-6 w-6" />
                   </div>
-                  <h4 className="mt-5 text-sm font-bold tracking-wider text-white group-hover:text-[#ff4d00] transition-colors uppercase font-mono">
+                  <h4 className="mt-4 text-sm font-bold text-slate-900 group-hover:text-rose-700 transition-colors">
                     {cat.title}
                   </h4>
-                  <p className="mt-2 text-xs text-[#888] font-mono leading-relaxed">
+                  <p className="mt-1 text-xs text-slate-400">
                     {cat.desc}
                   </p>
-                  <div className="mt-5 flex items-center text-[9px] font-mono font-bold text-[#ff4d00] uppercase tracking-widest group-hover:translate-x-1 duration-200 transition-all">
-                    AKSES PANDUAN_ <ArrowRight className="h-3 w-3 ml-1" />
-                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* 2. Top Searched Preview Section */}
+        {/* 2. Cara Kerja Section */}
+        <div id="how-it-works-section" className="mb-14 bg-white border border-slate-200/60 rounded-3xl p-8 shadow-xs">
+          <div className="text-center max-w-xl mx-auto mb-10">
+            <h3 className="text-xl font-bold text-slate-900">Cara Kerja CampusCare AI</h3>
+            <p className="text-sm text-slate-500 mt-1">Langkah mudah menemukan jalan keluar bagi masalah layanan kampus Anda.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            
+            {/* Step 1 */}
+            <div className="flex flex-col items-center text-center px-4 relative z-10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 border border-rose-100 text-rose-700 font-bold text-sm mb-4 shadow-xs">
+                1
+              </div>
+              <h4 className="text-sm font-bold text-slate-900">Ceritakan Masalah</h4>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                Tuliskan keluhan atau kendala layanan yang sedang Anda hadapi pada kolom AI Navigator.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-center text-center px-4 relative z-10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 border border-rose-100 text-rose-700 font-bold text-sm mb-4 shadow-xs">
+                2
+              </div>
+              <h4 className="text-sm font-bold text-slate-900">Dapatkan Rekomendasi</h4>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                AI kami mendeteksi unit pelayanan, tingkat keyakinan, dan memberikan langkah penyelesaian yang tepat.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col items-center text-center px-4 relative z-10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 border border-rose-100 text-rose-700 font-bold text-sm mb-4 shadow-xs">
+                3
+              </div>
+              <h4 className="text-sm font-bold text-slate-900">Ikuti Alur atau Draf Laporan</h4>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                Ikuti langkah interaktif resmi atau buat draf surat laporan formal siap kirim yang dirakit AI.
+              </p>
+            </div>
+            
+          </div>
+        </div>
+
+        {/* 3. Top Searched Preview Section */}
         <div id="treanding-services-container" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <h3 className="text-sm font-mono tracking-widest text-[#ff4d00] uppercase mb-6 flex items-center gap-1.5">
-              <span className="inline-block w-2 h-2 bg-[#ff4d00]"></span> Frequently Searched Guidelines
+            <h3 className="text-base font-bold text-slate-900 mb-5 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 bg-rose-600 rounded-full"></span> 
+              Layanan Paling Sering Dicari
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {trendServices.map((svc) => (
                 <div
                   key={svc.id}
                   id={`svc-trend-card-${svc.id}`}
                   onClick={() => onSelectService(svc)}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-[#0e0e0e] border border-[#1a1a1a] hover:border-[#ff4d00]/60 transition-all cursor-pointer"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white border border-slate-200/80 rounded-2xl hover:shadow-md hover:border-rose-200 transition-all cursor-pointer shadow-xs"
                 >
-                  <div className="max-w-xl">
-                    <span className="inline-flex items-center bg-[#151515] px-2.5 py-1 text-[9px] font-mono text-[#ffbb00] uppercase tracking-wider mb-2 border border-neutral-800">
+                  <div className="max-w-xl pr-4">
+                    <span className="inline-flex items-center bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px] font-semibold mb-2">
                       {svc.category}
                     </span>
-                    <h4 className="text-sm font-bold tracking-tight text-[#f2f2f2]">{svc.title}</h4>
-                    <p className="text-xs text-[#777] font-mono mt-1.5 line-clamp-2 leading-relaxed">{svc.description}</p>
+                    <h4 className="text-sm font-bold text-slate-900 leading-snug">{svc.title}</h4>
+                    <p className="text-xs text-slate-400 mt-1 line-clamp-1 leading-normal">{svc.description}</p>
                   </div>
-                  <div className="mt-3 sm:mt-0 flex items-center gap-1 text-[10px] font-mono font-bold text-[#ff4d00] hover:text-white shrink-0 uppercase tracking-widest">
-                    PANDUAN_
-                    <ArrowRight className="h-3 w-3" />
+                  <div className="mt-3 sm:mt-0 flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-700 shrink-0">
+                    Lihat Panduan
+                    <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>
               ))}
@@ -201,23 +304,29 @@ export default function Beranda({ services, onTabChange, onSelectCategory, onSea
           </div>
 
           {/* Quick FAQ / FAQ Widget Card */}
-          <div id="faq-widget" className="bg-[#0c0c0c] border border-[#1e1e1e] p-6">
-            <h3 className="text-xs font-mono tracking-wider text-white uppercase flex items-center gap-2 border-b border-[#1e1e1e] pb-3">
-              <HelpCircle className="h-4.5 w-4.5 text-[#ffbb00]" />
-              FAQ // WHY CHOOSE CAMPUSCARE
+          <div id="faq-widget" className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs">
+            <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <CircleHelp className="h-4 w-4 text-rose-700" />
+              Mengapa Menggunakan CampusCare?
             </h3>
-            <div className="mt-4 space-y-4 font-mono text-xs">
+            <div className="space-y-4 text-xs">
               <div>
-                <h4 className="font-bold text-[#f2f2f2]">01 // AKSES MANDIRI</h4>
-                <p className="text-[#777] mt-1 leading-relaxed">Sistem memandu Anda mengatasi masalah secara mandiri (self-service) sebelum harus mengajukan keluhan ke helpdesk universitas.</p>
+                <h4 className="font-bold text-slate-800">01 / Pencarian Satu Pintu</h4>
+                <p className="text-slate-500 mt-1 leading-relaxed">
+                  Tidak perlu mencari kontak atau website unit yang berbeda secara terpisah. Cukup ceritakan masalahmu di sini.
+                </p>
               </div>
-              <div className="border-t border-[#1a1a1a] pt-3">
-                <h4 className="font-bold text-[#f2f2f2]">02 // DRAF FORMAL AI</h4>
-                <p className="text-[#777] mt-1 leading-relaxed">Secara otomatis menghasilkan berkas/email pengaduan akademik resmi dengan tata bahasa Indonesia yang santun.</p>
+              <div className="border-t border-slate-100 pt-3">
+                <h4 className="font-bold text-slate-800">02 / Penyusunan Draf Laporan AI</h4>
+                <p className="text-slate-500 mt-1 leading-relaxed">
+                  AI membantu menyusun format laporan formal yang santun dan profesional untuk langsung disalin ke kanal resmi.
+                </p>
               </div>
-              <div className="border-t border-[#1a1a1a] pt-3">
-                <h4 className="font-bold text-[#f2f2f2]">03 // PANDUAN TERKINI</h4>
-                <p className="text-[#777] mt-1 leading-relaxed">Seluruh alur pelayanan divalidasi berkala demi menjamin keakuratan Standar Operasional kemahasiswaan.</p>
+              <div className="border-t border-slate-100 pt-3">
+                <h4 className="font-bold text-slate-800">03 / Informasi Selalu Akurat</h4>
+                <p className="text-slate-500 mt-1 leading-relaxed">
+                  Semua alur divalidasi berkala sesuai standar operasional yang berlaku di lingkungan universitas.
+                </p>
               </div>
             </div>
           </div>
@@ -227,4 +336,5 @@ export default function Beranda({ services, onTabChange, onSelectCategory, onSea
     </div>
   );
 }
+
 
