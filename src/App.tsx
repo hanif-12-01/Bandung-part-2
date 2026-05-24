@@ -245,27 +245,28 @@ export default function App() {
 
   return (
     <div id="app-root-container" className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans selection:bg-rose-100 selection:text-rose-900 flex flex-col">
-      {/* Universal Sticky Header Navigation */}
-      <Header
-        currentTab={currentTab}
-        userRole={userRole}
-        onLogoutRole={() => {
-          setUserRole(null);
-          setCurrentTab("home");
-        }}
-        onTabChange={(tab) => {
-          setCurrentTab(tab);
-          // Clean selection states if leaving sub-detail views
-          if (tab !== "guideline") setSelectedService(null);
-        }}
-        onTanyaAI={() => {
-          setCurrentTab("chat");
-          setSelectedService(null);
-        }}
-      />
+      {currentTab !== "insight" && (
+        <Header
+          currentTab={currentTab}
+          userRole={userRole}
+          onLogoutRole={() => {
+            setUserRole(null);
+            setCurrentTab("home");
+          }}
+          onTabChange={(tab) => {
+            setCurrentTab(tab);
+            // Clean selection states if leaving sub-detail views
+            if (tab !== "guideline") setSelectedService(null);
+          }}
+          onTanyaAI={() => {
+            setCurrentTab("chat");
+            setSelectedService(null);
+          }}
+        />
+      )}
 
       {/* Main Container Views Wrapper */}
-      <main id="app-viewport" className="flex-grow pb-10">
+      <main id="app-viewport" className={`flex-grow ${currentTab !== "insight" ? "pb-10" : ""}`}>
         
         {currentTab === "home" && (
           <Beranda
@@ -345,22 +346,25 @@ export default function App() {
             services={services}
             problems={problems}
             onAddProblem={handleAddProblem}
+            onTabChange={setCurrentTab}
+            userRole={userRole}
           />
         )}
 
       </main>
 
-      {/* Footer Navigation Credits */}
-      <footer id="footer-container" className="mt-auto py-8 bg-white border-t border-slate-200/80 text-center">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p id="footer-logo" className="text-sm font-bold text-slate-800">
-            CampusCare <span className="text-rose-700">AI</span>
-          </p>
-          <p id="footer-credits" className="text-xs text-slate-400 mt-2">
-            © 2026 CampusCare AI — Satu Pintu untuk Menemukan Layanan Kampus yang Tepat.
-          </p>
-        </div>
-      </footer>
+      {currentTab !== "insight" && (
+        <footer id="footer-container" className="mt-auto py-8 bg-white border-t border-slate-200/80 text-center">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <p id="footer-logo" className="text-sm font-bold text-slate-800">
+              CampusCare <span className="text-rose-700">AI</span>
+            </p>
+            <p id="footer-credits" className="text-xs text-slate-400 mt-2">
+              © 2026 CampusCare AI — Satu Pintu untuk Menemukan Layanan Kampus yang Tepat.
+            </p>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
