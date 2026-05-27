@@ -10,6 +10,8 @@ interface AIKonsultasiProps {
   onSendMessage: (text: string) => void;
   onClearChat: () => void;
   onNavigateToDraft: (service: CampusService) => void;
+  onSelectService: (service: CampusService) => void;
+  onSaveToHistory: (service: CampusService) => void;
 }
 
 export default function AIKonsultasi({
@@ -19,7 +21,9 @@ export default function AIKonsultasi({
   userRole,
   onSendMessage,
   onClearChat,
-  onNavigateToDraft
+  onNavigateToDraft,
+  onSelectService,
+  onSaveToHistory
 }: AIKonsultasiProps) {
   const [inputText, setInputText] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -280,62 +284,94 @@ export default function AIKonsultasi({
             </h4>
             
             {detectedSolution ? (
-              <div id="detected-sol-box" className="space-y-4">
-                <div className="bg-slate-50 p-4 border border-slate-200/50 rounded-xl space-y-3">
+              <div id="detected-sol-box" className="space-y-4 text-left">
+                
+                {/* Solusi Card */}
+                <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-3 shadow-2xs">
+                  
+                  {/* Category & Accuracy badge */}
                   <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center bg-teal-100 text-teal-700 px-2 py-0.5 rounded-md text-[9px] font-bold">
+                    <span className="inline-flex items-center bg-teal-50 border border-teal-100 text-teal-705 px-2 py-0.5 rounded-md text-[9px] font-bold">
                       {detectedSolution.category}
                     </span>
-                    <span className="text-[10px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100">
-                      {matchPercentage}% Akurat
+                    <span className="text-[10px] text-teal-650 font-bold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100/80">
+                      🎯 {matchPercentage}% Akurat
                     </span>
                   </div>
-                  
+
+                  {/* Title */}
                   <h5 className="font-bold text-xs text-slate-900 leading-snug">{detectedSolution.title}</h5>
-                  
-                  <div className="space-y-1 text-xs">
-                    <p className="font-semibold text-slate-500">Unit / Kanal Tujuan:</p>
-                    <p className="text-[11px] text-slate-700 font-medium leading-relaxed bg-white border border-slate-200/50 p-2 rounded-lg">
-                      {detectedSolution.officialChannel.split("/")[0].trim()}
+
+                  {/* Ringkasan Masalah */}
+                  <div className="space-y-0.5 text-xs">
+                    <p className="font-semibold text-slate-400 uppercase tracking-wider text-[9px]">Deteksi Masalah:</p>
+                    <p className="text-[10.5px] text-slate-650 font-medium italic truncate">
+                      "{messages.filter(m => m.sender === "user").pop()?.text || "Analisis keluhan..."}"
                     </p>
                   </div>
-                  
+
+                  {/* Target Unit */}
+                  <div className="space-y-1 text-xs">
+                    <p className="font-semibold text-slate-500">Unit / Kanal Tujuan:</p>
+                    <p className="text-[11px] text-slate-700 font-semibold bg-white border border-slate-200/60 p-2 rounded-lg leading-relaxed shadow-3xs">
+                      {detectedSolution.officialChannel}
+                    </p>
+                  </div>
+
+                  {/* Langkah Awal */}
                   {detectedSolution.steps && detectedSolution.steps.length > 0 && (
-                    <div className="space-y-1 text-xs pt-1">
+                    <div className="space-y-1 text-xs">
                       <p className="font-semibold text-slate-500">Langkah Awal:</p>
-                      <p className="text-[11px] text-slate-700 leading-relaxed italic bg-white border border-slate-200/50 p-2 rounded-lg flex gap-1.5">
-                        <CircleCheck className="h-4 w-4 text-teal-600 shrink-0 mt-0.5" />
+                      <div className="text-[10.5px] text-slate-750 bg-white border border-slate-200/60 p-2 rounded-lg flex gap-2 shadow-3xs">
+                        <CircleCheck className="h-4 w-4 text-teal-650 shrink-0 mt-0.5" />
                         <span>{detectedSolution.steps[0]}</span>
-                      </p>
+                      </div>
                     </div>
                   )}
+
+                  {/* Dokumen yang diperlukan */}
+                  {detectedSolution.requiredDetails && detectedSolution.requiredDetails.length > 0 && (
+                    <div className="space-y-1 text-xs">
+                      <p className="font-semibold text-slate-500">Berkas / Data yang Disiapkan:</p>
+                      <ul className="text-[10.5px] text-slate-700 bg-white border border-slate-200/60 p-2 rounded-lg space-y-1 shadow-3xs">
+                        {detectedSolution.requiredDetails.slice(0, 3).map((detail, dIdx) => (
+                          <li key={dIdx} className="flex items-start gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5 shrink-0"></span>
+                            <span>{detail}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                 </div>
-                
+
+                {/* CTAs */}
                 <div className="space-y-2">
                   <button
-                    onClick={() => {
-                      if (detectedSolution) {
-                        onSendMessage(`Lihat detail panduan ${detectedSolution.title}`);
-                      }
-                    }}
-                    className="w-full inline-flex items-center justify-between px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                    onClick={() => onSelectService(detectedSolution)}
+                    className="w-full inline-flex items-center justify-between px-4 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm active:scale-98"
                   >
-                    <span>Lihat Panduan Detail</span>
-                    <ChevronRight className="h-4 w-4" />
+                    <span>Lihat Panduan Resmi</span>
+                    <ChevronRight className="h-4 w-4 text-slate-400" />
                   </button>
 
                   <button
-                    onClick={() => {
-                      if (detectedSolution) {
-                        onNavigateToDraft(detectedSolution);
-                      }
-                    }}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+                    onClick={() => onNavigateToDraft(detectedSolution)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-98"
                   >
                     <FileText className="h-4 w-4" />
                     Buat Draft Laporan
                   </button>
+
+                  <button
+                    onClick={() => onSaveToHistory(detectedSolution)}
+                    className="w-full py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                  >
+                    Simpan ke Riwayat
+                  </button>
                 </div>
+
               </div>
             ) : (
               <div id="no-detected-sol" className="text-center py-10">

@@ -2,17 +2,37 @@ import React, { useState } from "react";
 import { 
   Sparkles, ShieldCheck, ChevronRight, GraduationCap, Users, LayoutDashboard,
   Search, BookOpen, Send, CheckCircle2, TrendingUp, Cpu, 
-  MapPin, MessageSquare, ArrowRight, ArrowDownRight, Compass, Shield, User, FileText
+  MapPin, MessageSquare, ArrowRight, ArrowDownRight, Compass, Shield, User, FileText,
+  X, AlertCircle
 } from "lucide-react";
 
+import { UserInfo } from "../types";
+
 interface LandingPageProps {
-  onSelectRole: (role: "mahasiswa" | "dosen" | "pegawai") => void;
-  lastRole?: "mahasiswa" | "dosen" | "pegawai" | null;
+  onLoginSuccess: (user: UserInfo) => void;
+  lastUser?: UserInfo | null;
 }
 
-export default function LandingPage({ onSelectRole, lastRole }: LandingPageProps) {
+export default function LandingPage({ onLoginSuccess, lastUser }: LandingPageProps) {
   
   const [activeScenario, setActiveScenario] = useState(0);
+  
+  // Auth Modals States
+  const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
+  const [authRole, setAuthRole] = useState<"mahasiswa" | "dosen" | "pegawai">("mahasiswa");
+  
+  // Login Form States
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  
+  // Register Form States
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regId, setRegId] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfPassword, setRegConfPassword] = useState("");
+  
+  const [authError, setAuthError] = useState("");
   
   const scenarios = [
     { 
@@ -47,6 +67,98 @@ export default function LandingPage({ onSelectRole, lastRole }: LandingPageProps
 
   const currentScenario = scenarios[activeScenario];
 
+  // Helper for quick demo fill and login
+  const handleQuickDemoLogin = (role: "mahasiswa" | "dosen" | "pegawai") => {
+    let name = "";
+    let email = "";
+    let idNumber = "";
+    
+    if (role === "mahasiswa") {
+      name = "Hanif";
+      email = "hanif@student.telkomuniversity.ac.id";
+      idNumber = "1301213012";
+    } else if (role === "dosen") {
+      name = "Dr. Budi Santoso";
+      email = "budi@telkomuniversity.ac.id";
+      idNumber = "1992000213";
+    } else {
+      name = "Siti Aminah";
+      email = "siti@telkomuniversity.ac.id";
+      idNumber = "1988000456";
+    }
+    
+    const user: UserInfo = { name, email, idNumber, role };
+    onLoginSuccess(user);
+    setAuthModal(null);
+  };
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    
+    if (!loginEmail || !loginPassword) {
+      setAuthError("Semua field wajib diisi.");
+      return;
+    }
+    
+    if (!loginEmail.includes("@")) {
+      setAuthError("Format email tidak valid.");
+      return;
+    }
+
+    // Determine role and general info
+    const isStudent = loginEmail.includes("student.");
+    const role = authRole;
+    
+    let name = "Demo User";
+    let idNumber = "1301210000";
+    
+    if (role === "mahasiswa") {
+      name = loginEmail.split("@")[0].toUpperCase();
+      idNumber = "1301210001";
+    } else if (role === "dosen") {
+      name = "Dr. " + loginEmail.split("@")[0].split(".")[0].toUpperCase();
+      idNumber = "1990001234";
+    } else {
+      name = loginEmail.split("@")[0].toUpperCase();
+      idNumber = "1988005678";
+    }
+    
+    const user: UserInfo = { name, email: loginEmail, idNumber, role };
+    onLoginSuccess(user);
+    setAuthModal(null);
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    
+    if (!regName || !regEmail || !regId || !regPassword || !regConfPassword) {
+      setAuthError("Semua field wajib diisi.");
+      return;
+    }
+    
+    if (!regEmail.includes("@")) {
+      setAuthError("Email harus berformat email kampus valid.");
+      return;
+    }
+    
+    if (regPassword !== regConfPassword) {
+      setAuthError("Konfirmasi password tidak cocok.");
+      return;
+    }
+    
+    const user: UserInfo = {
+      name: regName,
+      email: regEmail,
+      idNumber: regId,
+      role: authRole
+    };
+    
+    onLoginSuccess(user);
+    setAuthModal(null);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans selection:bg-rose-500/20 selection:text-rose-900">
       
@@ -66,10 +178,19 @@ export default function LandingPage({ onSelectRole, lastRole }: LandingPageProps
             <a href="#cara-kerja" className="text-sm font-semibold text-slate-500 hover:text-rose-600 transition-colors">Cara Kerja</a>
             <a href="#fitur" className="text-sm font-semibold text-slate-500 hover:text-rose-600 transition-colors">Fitur Unggulan</a>
           </div>
-          <div className="flex items-center gap-4">
-            <a href="#pilih-role" className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_4px_12px_rgba(15,23,42,0.15)] flex items-center gap-2">
-              Masuk Layanan <ArrowRight className="h-4 w-4" />
-            </a>
+          <div className="flex items-center gap-2.5">
+            <button 
+              onClick={() => { setAuthModal("login"); setAuthError(""); }}
+              className="text-slate-700 hover:text-rose-600 px-4 py-2 rounded-full text-sm font-semibold transition-all cursor-pointer"
+            >
+              Masuk
+            </button>
+            <button 
+              onClick={() => { setAuthModal("register"); setAuthError(""); }}
+              className="bg-slate-900 hover:bg-slate-850 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_4px_12px_rgba(15,23,42,0.15)] flex items-center gap-2 cursor-pointer"
+            >
+              Daftar <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </nav>
@@ -286,11 +407,11 @@ export default function LandingPage({ onSelectRole, lastRole }: LandingPageProps
                 <div className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5"></div><p className="text-xs text-slate-700 font-medium">Keuangan, LMS, & Open Library</p></div>
               </div>
               
-              <button onClick={() => onSelectRole("mahasiswa")} className="w-full py-3.5 rounded-xl bg-slate-50 group-hover:bg-rose-600 text-slate-700 group-hover:text-white font-bold text-sm transition-colors border border-slate-200 group-hover:border-rose-600">
+              <button onClick={() => { setAuthRole("mahasiswa"); setAuthModal("login"); setAuthError(""); }} className="w-full py-3.5 rounded-xl bg-slate-50 group-hover:bg-rose-600 text-slate-700 group-hover:text-white font-bold text-sm transition-colors border border-slate-200 group-hover:border-rose-600 cursor-pointer">
                 Masuk sebagai Mahasiswa
               </button>
             </div>
-
+ 
             {/* Dosen */}
             <div className="group bg-white rounded-3xl p-8 border border-slate-200 hover:border-teal-300 shadow-sm hover:shadow-[0_15px_40px_rgba(20,184,166,0.08)] transition-all relative overflow-hidden flex flex-col">
               <div className="h-14 w-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-6 group-hover:bg-teal-600 group-hover:text-white transition-colors">
@@ -306,11 +427,11 @@ export default function LandingPage({ onSelectRole, lastRole }: LandingPageProps
                 <div className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-teal-400 mt-1.5"></div><p className="text-xs text-slate-700 font-medium">Penelitian, pengabdian, fasilitas</p></div>
               </div>
               
-              <button onClick={() => onSelectRole("dosen")} className="w-full py-3.5 rounded-xl bg-slate-50 group-hover:bg-teal-600 text-slate-700 group-hover:text-white font-bold text-sm transition-colors border border-slate-200 group-hover:border-teal-600">
+              <button onClick={() => { setAuthRole("dosen"); setAuthModal("login"); setAuthError(""); }} className="w-full py-3.5 rounded-xl bg-slate-50 group-hover:bg-teal-600 text-slate-700 group-hover:text-white font-bold text-sm transition-colors border border-slate-200 group-hover:border-teal-600 cursor-pointer">
                 Masuk sebagai Dosen
               </button>
             </div>
-
+ 
             {/* Pegawai Kampus */}
             <div className="group bg-white rounded-3xl p-8 border border-slate-200 hover:border-amber-300 shadow-sm hover:shadow-[0_15px_40px_rgba(245,158,11,0.08)] transition-all relative overflow-hidden flex flex-col">
               <div className="h-14 w-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-6 group-hover:bg-amber-500 group-hover:text-white transition-colors">
@@ -326,20 +447,20 @@ export default function LandingPage({ onSelectRole, lastRole }: LandingPageProps
                 <div className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5"></div><p className="text-xs text-slate-700 font-medium">Insight layanan & knowledge base</p></div>
               </div>
               
-              <button onClick={() => onSelectRole("pegawai")} className="w-full py-3.5 rounded-xl bg-slate-50 group-hover:bg-amber-500 text-slate-700 group-hover:text-white font-bold text-sm transition-colors border border-slate-200 group-hover:border-amber-500">
+              <button onClick={() => { setAuthRole("pegawai"); setAuthModal("login"); setAuthError(""); }} className="w-full py-3.5 rounded-xl bg-slate-50 group-hover:bg-amber-500 text-slate-700 group-hover:text-white font-bold text-sm transition-colors border border-slate-200 group-hover:border-amber-500 cursor-pointer">
                 Masuk sebagai Pegawai
               </button>
             </div>
           </div>
           
-          {lastRole && (
+          {lastUser && (
              <div className="mt-12 text-center">
                <p className="text-sm text-slate-500 mb-3">Melanjutkan sesi sebelumnya?</p>
                <button 
-                onClick={() => onSelectRole(lastRole)}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm transition-colors border border-slate-300"
+                onClick={() => onLoginSuccess(lastUser)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm transition-colors border border-slate-350 cursor-pointer"
                >
-                 Masuk Kembali sebagai <span className="capitalize text-rose-600">{lastRole}</span> <ArrowRight className="h-4 w-4" />
+                 Masuk Kembali sebagai <span className="capitalize text-rose-650 font-bold">{lastUser.name}</span> (<span className="capitalize">{lastUser.role === 'pegawai' ? 'Pegawai' : lastUser.role}</span>) <ArrowRight className="h-4 w-4" />
                </button>
              </div>
           )}
@@ -460,6 +581,80 @@ export default function LandingPage({ onSelectRole, lastRole }: LandingPageProps
         </div>
       </section>
 
+      {/* 5.5 Roadmap Section */}
+      <section className="py-20 bg-slate-50 border-t border-slate-200/80 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rose-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="px-3.5 py-1.5 rounded-full bg-rose-50 text-rose-600 text-xs font-bold uppercase tracking-wider">
+              Future Development
+            </span>
+            <h2 className="text-3xl font-extrabold text-slate-900 mt-4 mb-4">
+              Roadmap Pengembangan Masa Depan
+            </h2>
+            <p className="text-slate-500 text-base leading-relaxed">
+              CampusCare AI dikembangkan secara bertahap menuju integrasi penuh untuk memberikan efisiensi maksimal bagi civitas akademika dan pengelola kampus.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Card 1 */}
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+              <div className="absolute top-0 left-0 w-2 h-full bg-slate-200 group-hover:bg-rose-600 transition-colors"></div>
+              <div className="h-12 w-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center mb-6 group-hover:bg-rose-50 group-hover:text-rose-600 transition-all duration-300">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-900 mb-2">
+                SSO & LDAP Real Integration
+              </h4>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Menghubungkan langsung dengan basis data pusat untuk verifikasi status civitas akademika secara instan tanpa login manual berulang.
+              </p>
+              <div className="mt-6 flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                Phase 1: Authentication
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+              <div className="absolute top-0 left-0 w-2 h-full bg-slate-200 group-hover:bg-teal-500 transition-colors"></div>
+              <div className="h-12 w-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center mb-6 group-hover:bg-teal-50 group-hover:text-teal-600 transition-all duration-300">
+                <Send className="h-6 w-6" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-900 mb-2">
+                Helpdesk & Ticketing Bridging
+              </h4>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Integrasi API satu pintu guna meneruskan secara otomatis draf laporan AI ke helpdesk tujuan seperti Service Desk masing-masing unit.
+              </p>
+              <div className="mt-6 flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                Phase 2: API Integration
+              </div>
+            </div>
+
+            {/* Card 3 */}
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+              <div className="absolute top-0 left-0 w-2 h-full bg-slate-200 group-hover:bg-amber-500 transition-colors"></div>
+              <div className="h-12 w-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center mb-6 group-hover:bg-amber-50 group-hover:text-amber-550 transition-all duration-300">
+                <Cpu className="h-6 w-6" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-900 mb-2">
+                Predictive Analytics & AI Agent
+              </h4>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Analitik prediktif berbasis machine learning untuk memproyeksikan potensi penumpukan masalah/aduan pada periode akademik tertentu.
+              </p>
+              <div className="mt-6 flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                Phase 3: Machine Learning
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 6. Footer */}
       <footer className="py-10 bg-white border-t border-slate-200 text-center">
         <div className="max-w-7xl mx-auto px-6">
@@ -472,6 +667,188 @@ export default function LandingPage({ onSelectRole, lastRole }: LandingPageProps
         </div>
       </footer>
 
+      {/* Auth Modals */}
+      {authModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden relative animate-[scaleIn_0.2s_ease-out]">
+            
+            {/* Modal Header */}
+            <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-950">
+                  {authModal === "login" ? "Masuk ke CampusCare" : "Daftar Akun Baru"}
+                </h3>
+                <p className="text-xs text-slate-450 mt-1">
+                  {authModal === "login" 
+                    ? "Gunakan email institusi Anda untuk mengakses layanan." 
+                    : "Lengkapi data untuk mendaftarkan akun civitas."}
+                </p>
+              </div>
+              <button 
+                onClick={() => setAuthModal(null)}
+                className="h-8 w-8 rounded-full border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-450 hover:text-slate-700 transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Quick Demo Fill Info Bar */}
+            {authModal === "login" && (
+              <div className="bg-rose-50/50 px-6 py-3 border-b border-rose-100/60 text-left">
+                <p className="text-[10px] font-bold text-rose-800 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5" /> Demo Quick-Login (Sekali Klik)
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleQuickDemoLogin("mahasiswa")}
+                    className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+                  >
+                    Mahasiswa
+                  </button>
+                  <button
+                    onClick={() => handleQuickDemoLogin("dosen")}
+                    className="px-2.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-[10px] font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+                  >
+                    Dosen
+                  </button>
+                  <button
+                    onClick={() => handleQuickDemoLogin("pegawai")}
+                    className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[10px] font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+                  >
+                    Pegawai
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={authModal === "login" ? handleLoginSubmit : handleRegisterSubmit} className="p-6 space-y-4 text-left">
+              {authError && (
+                <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl text-xs font-semibold text-rose-750 flex items-center gap-2 animate-bounce">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              {/* Shared Role Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Peran Anda (Role)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["mahasiswa", "dosen", "pegawai"] as const).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setAuthRole(r)}
+                      className={`py-2.5 rounded-xl text-xs font-bold capitalize border transition-all cursor-pointer ${
+                        authRole === r
+                          ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                          : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      {r === 'pegawai' ? 'Pegawai' : r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Register Fields */}
+              {authModal === "register" && (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Nama Lengkap</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="Masukkan nama lengkap Anda"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 px-4 text-xs focus:outline-hidden focus:border-slate-400 focus:ring-1 focus:ring-slate-400"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">NIM / NIP</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="Masukkan NIM atau NIP resmi"
+                      value={regId}
+                      onChange={(e) => setRegId(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 px-4 text-xs focus:outline-hidden focus:border-slate-400 focus:ring-1 focus:ring-slate-400 font-mono"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Common Fields */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Email Kampus</label>
+                <input 
+                  type="email" 
+                  required
+                  placeholder={authRole === "mahasiswa" ? "username@student.telkomuniversity.ac.id" : "username@telkomuniversity.ac.id"}
+                  value={authModal === "login" ? loginEmail : regEmail}
+                  onChange={(e) => authModal === "login" ? setLoginEmail(e.target.value) : setRegEmail(e.target.value)}
+                  className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 px-4 text-xs focus:outline-hidden focus:border-slate-400 focus:ring-1 focus:ring-slate-400 font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Password</label>
+                <input 
+                  type="password" 
+                  required
+                  placeholder="••••••••"
+                  value={authModal === "login" ? loginPassword : regPassword}
+                  onChange={(e) => authModal === "login" ? setLoginPassword(e.target.value) : setRegPassword(e.target.value)}
+                  className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 px-4 text-xs focus:outline-hidden focus:border-slate-400 focus:ring-1 focus:ring-slate-400"
+                />
+              </div>
+
+              {authModal === "register" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Konfirmasi Password</label>
+                  <input 
+                    type="password" 
+                    required
+                    placeholder="••••••••"
+                    value={regConfPassword}
+                    onChange={(e) => setRegConfPassword(e.target.value)}
+                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 px-4 text-xs focus:outline-hidden focus:border-slate-400 focus:ring-1 focus:ring-slate-400"
+                  />
+                </div>
+              )}
+
+              {/* Submit & Switch Tab */}
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition-all shadow-md active:scale-98 cursor-pointer mt-4"
+              >
+                {authModal === "login" ? "Masuk Layanan" : "Daftar Akun"}
+              </button>
+
+              <div className="text-center pt-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthError("");
+                    setAuthModal(authModal === "login" ? "register" : "login");
+                  }}
+                  className="text-xs font-bold text-rose-700 hover:text-rose-800 transition-colors border-b border-transparent hover:border-rose-700 cursor-pointer"
+                >
+                  {authModal === "login" 
+                    ? "Belum punya akun? Daftar Sekarang" 
+                    : "Sudah punya akun? Masuk di sini"}
+                </button>
+              </div>
+
+              <div className="pt-2 border-t border-slate-150 text-[10px] text-slate-400 leading-normal text-center">
+                CampusCare AI menjamin keamanan kredensial. <br/>
+                Data pada prototype ini digunakan untuk simulasi alur produk.
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

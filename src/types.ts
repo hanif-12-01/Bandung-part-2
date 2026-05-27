@@ -27,7 +27,7 @@ export interface DraftReport {
   waktuKejadian: string;
   deskripsi: string;
   lampiranName?: string;
-  status: "Draft" | "Terkirim" | "Selesai";
+  status: "Draft" | "Terkirim" | "Selesai" | "Perlu tindak lanjut";
   tanggalDibuat: string;
   generatedLetter?: string;
   serviceId?: string;
@@ -40,3 +40,11 @@ export interface CampusProblem {
   status: "Kritis" | "Sedang" | "Aman" | "Dalam Peninjauan";
   category: string;
 }
+
+export interface UserInfo {
+  name: string;
+  email: string;
+  idNumber: string;
+  role: "mahasiswa" | "dosen" | "pegawai";
+}
+

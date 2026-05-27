@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { ArrowLeft, BookOpen, CircleCheck, FileDown, FileText, Globe, Copy, Check } from "lucide-react";
+import { ArrowLeft, BookOpen, CircleCheck, FileDown, FileText, Globe, Copy, Check, Bookmark, Sparkles } from "lucide-react";
 import { CampusService } from "../types";
 
 interface GuidelineDetailProps {
   service: CampusService;
   onBack: () => void;
   onNavigateToDraft: (service: CampusService) => void;
+  onSaveGuideline?: (service: CampusService) => void;
+  onBackToChat?: () => void;
 }
 
-export default function GuidelineDetail({ service, onBack, onNavigateToDraft }: GuidelineDetailProps) {
+export default function GuidelineDetail({ service, onBack, onNavigateToDraft, onSaveGuideline, onBackToChat }: GuidelineDetailProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -37,13 +39,24 @@ export default function GuidelineDetail({ service, onBack, onNavigateToDraft }: 
       
       {/* Breadcrumbs / Back button row */}
       <div id="guideline-breadcrumbs" className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200/60">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-rose-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all cursor-pointer"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Kembali ke Pencarian
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-rose-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all cursor-pointer"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Kembali ke Pencarian
+          </button>
+          {onBackToChat && (
+            <button
+              onClick={onBackToChat}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-650 hover:text-teal-800 px-3 py-1.5 rounded-lg hover:bg-teal-50/50 transition-all cursor-pointer"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              AI Navigator
+            </button>
+          )}
+        </div>
         <span className="text-xs font-bold tracking-wider text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full uppercase">
           Rumpun // {service.category}
         </span>
@@ -75,13 +88,24 @@ export default function GuidelineDetail({ service, onBack, onNavigateToDraft }: 
               {service.recommendation}
             </p>
           </div>
-          <button
-            onClick={() => onNavigateToDraft(service)}
-            className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-sm font-semibold shadow-md active:scale-98 transition-all cursor-pointer whitespace-nowrap"
-          >
-            <FileText className="h-4.5 w-4.5" />
-            Mulai Buat Draft Laporan
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto">
+            {onSaveGuideline && (
+              <button
+                onClick={() => onSaveGuideline(service)}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all cursor-pointer whitespace-nowrap active:scale-98"
+              >
+                <Bookmark className="h-4.5 w-4.5 text-slate-400" />
+                Simpan Panduan
+              </button>
+            )}
+            <button
+              onClick={() => onNavigateToDraft(service)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-sm font-bold shadow-md active:scale-98 transition-all cursor-pointer whitespace-nowrap"
+            >
+              <FileText className="h-4.5 w-4.5" />
+              Mulai Buat Draft Laporan
+            </button>
+          </div>
         </div>
       </div>
 

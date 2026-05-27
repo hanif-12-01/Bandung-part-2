@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Copy, Save, Sparkles, FileText, Trash2, CircleHelp, Upload, Paperclip, Check, RotateCcw } from "lucide-react";
-import { CampusService, DraftReport } from "../types";
+import { CampusService, DraftReport, UserInfo } from "../types";
 
 interface BuatDraftLaporanProps {
   services: CampusService[];
@@ -8,6 +8,7 @@ interface BuatDraftLaporanProps {
   prefilledDraft?: DraftReport | null;
   savedDrafts: DraftReport[];
   userRole: "mahasiswa" | "dosen" | "pegawai" | null;
+  currentUser?: UserInfo | null;
   onSaveDraft: (draft: DraftReport) => void;
   onDeleteDraft: (id: string) => void;
 }
@@ -18,6 +19,7 @@ export default function BuatDraftLaporan({
   prefilledDraft,
   savedDrafts,
   userRole,
+  currentUser,
   onSaveDraft,
   onDeleteDraft
 }: BuatDraftLaporanProps) {
@@ -38,6 +40,15 @@ export default function BuatDraftLaporan({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Monitor currentUser changes to prefill personal info
+  useEffect(() => {
+    if (currentUser) {
+      setNama(currentUser.name);
+      setNim(currentUser.idNumber);
+      setEmail(currentUser.email);
+    }
+  }, [currentUser]);
 
   // Monitor prefilled inputs from other pages
   useEffect(() => {

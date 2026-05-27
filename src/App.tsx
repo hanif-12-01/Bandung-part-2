@@ -9,18 +9,48 @@ import InsightDashboard from "./components/InsightDashboard";
 import Riwayat, { ViewedGuideline } from "./components/Riwayat";
 import LandingPage from "./components/LandingPage";
 
-import { CampusService, Message, DraftReport, CampusProblem } from "./types";
+import { CampusService, Message, DraftReport, CampusProblem, UserInfo } from "./types";
 import { INITIAL_SERVICES, INITIAL_PROBLEMS } from "./data";
 
 export default function App() {
   
-  // User Role State
-  const [userRole, setUserRole] = useState<"mahasiswa" | "dosen" | "pegawai" | null>(() => {
-    return (localStorage.getItem("campus_care_user_role") as any) || null;
+  // Current User State for Authentication
+  const [currentUser, setCurrentUser] = useState<UserInfo | null>(() => {
+    const saved = localStorage.getItem("campus_care_current_user");
+    return saved ? JSON.parse(saved) : null;
   });
+
+  // User Role State (synced with currentUser)
+  const [userRole, setUserRole] = useState<"mahasiswa" | "dosen" | "pegawai" | null>(() => {
+    const saved = localStorage.getItem("campus_care_current_user");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.role || null;
+    }
+    return null;
+  });
+
+  // Sync userRole with currentUser
+  useEffect(() => {
+    if (currentUser) {
+      setUserRole(currentUser.role);
+      localStorage.setItem("campus_care_current_user", JSON.stringify(currentUser));
+    } else {
+      setUserRole(null);
+      localStorage.removeItem("campus_care_current_user");
+    }
+  }, [currentUser]);
 
   // App routing state
   const [currentTab, setCurrentTab] = useState<string>("home");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
   
   // Content states
   const [services, setServices] = useState<CampusService[]>(INITIAL_SERVICES);
@@ -198,6 +228,27 @@ export default function App() {
     ]);
   };
 
+  const handleSaveToHistory = (service: CampusService) => {
+    const newViewed: ViewedGuideline = {
+      id: "vg-" + Math.random().toString(36).substring(2, 9),
+      serviceId: service.id,
+      title: service.title,
+      category: service.category,
+      tanggalDilihat: new Date().toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    };
+    setViewedGuidelines((prev) => [
+      newViewed,
+      ...prev.filter((item) => item.serviceId !== service.id)
+    ]);
+    showToast(`Layanan "${service.title}" berhasil disimpan ke Riwayat!`);
+  };
+
   const handleSelectServiceById = (serviceId: string) => {
     const service = services.find((s) => s.id === serviceId);
     if (service) {
@@ -214,10 +265,18 @@ export default function App() {
   // Saved draft list controllers
   const handleSaveDraft = (draft: DraftReport) => {
     setSavedDrafts((prev) => [draft, ...prev.filter((d) => d.id !== draft.id)]);
+    showToast("Draft laporan berhasil disimpan!");
   };
 
   const handleDeleteDraft = (id: string) => {
     setSavedDrafts((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const handleUpdateDraftStatus = (id: string, status: any) => {
+    setSavedDrafts((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, status } : d))
+    );
+    showToast("Status draf berhasil diperbarui!");
   };
 
   const handleLoadDraft = (draft: DraftReport) => {
@@ -233,12 +292,11 @@ export default function App() {
   if (userRole === null) {
     return (
       <LandingPage
-        onSelectRole={(role) => {
-          setUserRole(role);
-          localStorage.setItem("campus_care_user_role", role);
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
           setCurrentTab("home");
         }}
-        lastRole={localStorage.getItem("campus_care_user_role") as any}
+        lastUser={currentUser || (localStorage.getItem("campus_care_current_user") ? JSON.parse(localStorage.getItem("campus_care_current_user")!) : null)}
       />
     );
   }
@@ -249,8 +307,9 @@ export default function App() {
         <Header
           currentTab={currentTab}
           userRole={userRole}
+          currentUser={currentUser}
           onLogoutRole={() => {
-            setUserRole(null);
+            setCurrentUser(null);
             setCurrentTab("home");
           }}
           onTabChange={(tab) => {
@@ -303,6 +362,11 @@ export default function App() {
               setSelectedService(null);
             }}
             onNavigateToDraft={handleNavigateToDraft}
+            onSaveGuideline={handleSaveToHistory}
+            onBackToChat={() => {
+              setCurrentTab("chat");
+              setSelectedService(null);
+            }}
           />
         )}
 
@@ -315,6 +379,8 @@ export default function App() {
             onSendMessage={handleSendMessage}
             onClearChat={handleClearChat}
             onNavigateToDraft={handleNavigateToDraft}
+            onSelectService={handleSelectService}
+            onSaveToHistory={handleSaveToHistory}
           />
         )}
 
@@ -325,6 +391,7 @@ export default function App() {
             prefilledDraft={prefilledDraft}
             savedDrafts={savedDrafts}
             userRole={userRole}
+            currentUser={currentUser}
             onSaveDraft={handleSaveDraft}
             onDeleteDraft={handleDeleteDraft}
           />
@@ -338,6 +405,7 @@ export default function App() {
             onLoadDraft={handleLoadDraft}
             onSelectServiceById={handleSelectServiceById}
             onClearViewedGuidelines={handleClearViewedGuidelines}
+            onUpdateDraftStatus={handleUpdateDraftStatus}
           />
         )}
 
@@ -364,6 +432,13 @@ export default function App() {
             </p>
           </div>
         </footer>
+      )}
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-slate-900 text-white text-xs font-bold py-3 px-4.5 rounded-xl shadow-xl border border-slate-800">
+          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+          <span>{toastMessage}</span>
+        </div>
       )}
     </div>
   );

@@ -18,6 +18,7 @@ interface RiwayatProps {
   onLoadDraft: (draft: DraftReport) => void;
   onSelectServiceById: (serviceId: string) => void;
   onClearViewedGuidelines: () => void;
+  onUpdateDraftStatus: (id: string, status: "Draft" | "Perlu tindak lanjut" | "Selesai") => void;
 }
 
 export default function Riwayat({
@@ -26,7 +27,8 @@ export default function Riwayat({
   onDeleteDraft,
   onLoadDraft,
   onSelectServiceById,
-  onClearViewedGuidelines
+  onClearViewedGuidelines,
+  onUpdateDraftStatus
 }: RiwayatProps) {
   const [activeSubTab, setActiveSubTab] = useState<"drafts" | "guidelines">("drafts");
 
@@ -83,10 +85,28 @@ export default function Riwayat({
                   <div>
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div>
-                        <span className="inline-flex items-center rounded-md bg-teal-50 px-2 py-0.5 text-[10px] font-bold text-teal-700 uppercase">
-                          {draft.status}
-                        </span>
-                        <h4 className="text-base font-extrabold text-slate-900 mt-2 line-clamp-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[9px] font-extrabold uppercase border ${
+                            draft.status === "Selesai" 
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
+                              : draft.status === "Perlu tindak lanjut" 
+                              ? "bg-amber-50 text-amber-700 border-amber-100" 
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}>
+                            {draft.status === "Draft" ? "Draf Laporan" : draft.status}
+                          </span>
+                          
+                          <select
+                            value={draft.status}
+                            onChange={(e) => onUpdateDraftStatus(draft.id, e.target.value as any)}
+                            className="bg-slate-50 border border-slate-200 rounded-md py-0.5 px-1.5 text-[9px] font-bold text-slate-500 hover:text-slate-850 transition-colors cursor-pointer focus:outline-hidden"
+                          >
+                            <option value="Draft">Set Draft</option>
+                            <option value="Perlu tindak lanjut">Tindak Lanjut</option>
+                            <option value="Selesai">Selesai</option>
+                          </select>
+                        </div>
+                        <h4 className="text-base font-extrabold text-slate-900 mt-2.5 line-clamp-1">
                           {draft.jenisKendala}
                         </h4>
                       </div>
