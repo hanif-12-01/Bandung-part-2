@@ -7,64 +7,81 @@ Aplikasi ini menggunakan aksen warna **Maroon khas Telkom University** yang diko
 
 ---
 
-## ✨ Fitur Utama
+## ✨ Fitur Utama (Must Have & Should Have)
 
 ### 1. 🚪 Landing Page Berbasis Role (Pintu Masuk Awal)
 * Halaman depan yang elegan dan informatif untuk memilih peran pengguna sebelum mengakses dasbor utama.
-* Tiga kartu peran interaktif:
-  * **Mahasiswa**: Layanan seputar UKT/Keuangan, Surat Aktif Kuliah, LMS CeLOE, Akun SSO, WiFi, Perpustakaan, dan Kemahasiswaan.
-  * **Dosen**: Layanan seputar Sinkronisasi LMS, Pengabdian Masyarakat & Penelitian (PPM), Pangkat & Jabatan Akademik (JAFA), dan peminjaman laboratorium/ruang.
-  * **Pegawai Kampus**: Layanan seputar Nota Dinas, pengadaan logistik/ATK, pengelolaan tiket Helpdesk Unit, SDM (Cuti/Gaji), dan basis data panduan kerja (SOP).
+* **One-Click Quick Demo Login**: Tombol demo sekali klik khusus juri untuk masuk sebagai Mahasiswa, Dosen, atau Pegawai Kampus tanpa mengetik sandi.
+* Formulir registrasi dan login simulasi dengan validasi domain email resmi kampus.
 
 ### 2. 💬 Smart AI Navigator (Konsultasi Pintar)
 * Asisten virtual interaktif yang menyesuaikan tanggapan dan sapaan awal berdasarkan peran aktif pengguna.
 * Pencocokan alur layanan secara cerdas (*AI Solution Detection*) saat berkonsultasi, mendeteksi kata kunci keluhan secara otomatis, dan memperkirakan tingkat akurasi kecocokan rekomendasi alur.
-* Opsi integrasi langsung dengan **Gemini API** untuk navigasi interaktif atau fallback mock demo jika API Key belum terkonfigurasi.
+* Tombol pintasan langsung: "Lihat Panduan", "Buat Draft Laporan", dan "Simpan ke Riwayat" dari hasil deteksi AI.
 
-### 3. 📄 Pembuat Draf Laporan Otomatis (Auto-Drafter)
+### 3. 🔍 Smart Service Search & Guidance
+* Navigasi pencarian layanan interaktif dengan filter kategori instan.
+* **Service Guidance**: Panduan langkah-demi-langkah (timeline stepper) yang detail, daftar dokumen persyaratan, catatan penting, dan tautan kanal resmi unit terkait.
+
+### 4. 📄 Pembuat Draf Laporan Otomatis (Auto-Drafter)
 * Menyusun surat pengaduan formal sesuai standar Ejaan Bahasa Indonesia (EBI).
-* Variabel dinamis otomatis:
-  * Menggunakan **NIM** untuk Mahasiswa dan **NIP** untuk Dosen atau Pegawai Kampus.
-  * Menyesuaikan unit tujuan surat resmi (contoh: Direktorat Akademik untuk mahasiswa, PPM untuk riset dosen, Direktorat SDM untuk staf pegawai).
-  * Struktur draf surat langsung siap disalin ke email resmi kampus atau sistem tiket pengaduan.
+* Mengisi otomatis profil pelapor (Nama, NIM/NIP, dan Email) sesuai dengan akun simulasi yang sedang aktif.
+* Struktur draf surat langsung siap disalin ke email resmi kampus atau sistem tiket pengaduan.
 
-### 4. 📊 Dashboard Insight Admin
+### 5. ⏳ Riwayat Penggunaan & Dropdown Status
+* Menyimpan daftar panduan yang terakhir dibaca dan draf laporan yang telah dibuat dengan persistensi `localStorage`.
+* Dropdown untuk memperbarui status draf secara instan ("Draft", "Tindak Lanjut", "Selesai") secara langsung dari halaman Riwayat.
+
+### 6. 📊 Dashboard Insight Admin & Campus Problem Bank
 * Halaman visualisasi statistik interaktif khusus untuk peran **Pegawai Kampus** yang berisi:
-  * Total pertanyaan masuk dan metrik performa.
-  * Grafik batang tingkat keluhan terpopuler di kalangan civitas akademika.
-  * Formulir manajemen pelaporan untuk menambahkan status kendala layanan kampus secara dinamis.
+  * Total pertanyaan masuk, draf dibuat, rekomendasi berhasil, dan rata-rata waktu respons dengan mini chart SVG premium.
+  * Bar chart kategori terpopuler dan grafik garis tren mingguan, serta diagram donat distribusi role civitas.
+  * **Campus Problem Bank**: Kumpulan aduan civitas yang kritis untuk dijadikan tantangan inovasi (Challenge Hackathon) dengan tombol "Jadikan Challenge".
+  * **Knowledge Base CMS**: Pratinjau (*preview*) halaman pengelola untuk memvalidasi dan mengedit database panduan layanan secara mandiri.
+
+---
+
+## 🚀 Alur Demo Flow Kompetisi
+Demonstrasikan alur menyeluruh berikut kepada juri:
+1. **Landing Page**: Lihat copywriting premium dan visual navigasi.
+2. **Login/Register**: Gunakan **One-click Quick Demo Login** untuk masuk instan.
+3. **Role Selection**: Konten dasbor, menu kategori, dan welcome AI menyesuaikan peran (Mahasiswa/Dosen/Pegawai).
+4. **AI Navigator**: Cari solusi via input teks, lalu klik pintasan visual solusi.
+5. **Panduan (Guideline)**: Baca langkah resmi dan klik "Buat Draft Laporan".
+6. **Draft Laporan**: Profil pengguna terisi otomatis. Edit detail masalah dan klik "Simpan ke Riwayat".
+7. **Riwayat**: Periksa daftar draf dan perbarui statusnya melalui dropdown status.
+8. **Insight Admin & Problem Bank**: Masuk sebagai Pegawai, klik menu Insight Admin, lihat analitik real-time, dan jadikan keluhan kritis sebagai Challenge inovasi kampus.
+
+---
+
+## 🔮 Future Development (Roadmap)
+* **SSO & LDAP Real Integration**: Integrasi autentikasi tunggal kampus untuk sinkronisasi otomatis status & data mahasiswa/dosen secara instan.
+* **Helpdesk & Ticketing Bridging**: Integrasi API satu pintu guna meneruskan secara otomatis draf laporan AI ke helpdesk tujuan (e.g., Service Desk).
+* **Predictive Analytics & AI Agent**: Analitik prediktif berbasis machine learning untuk memproyeksikan potensi penumpukan aduan pada periode akademik tertentu.
 
 ---
 
 ## 🛠️ Tech Stack & Dependencies
 
 * **Frontend**: React 19, TypeScript, Vite.
-* **Styling**: Tailwind CSS v4 (Aksen Maroon, Deep Navy, Teal AI Accent, Soft Shadows, Clean Typography).
+* **Styling**: Tailwind CSS v4.
 * **Backend**: Node.js & Express (berperan sebagai server API sekaligus melayani aset frontend).
 * **AI Engine**: `@google/genai` (Google Gemini SDK).
-* **Animasi & Interaksi**: Motion (dahulu Framer Motion) untuk transisi mikro-interaksi yang halus.
 * **Ikonografi**: Lucide React.
 
 ---
 
-## 🚀 Panduan Menjalankan Aplikasi Secara Lokal
+## ⚙️ Cara Menjalankan Aplikasi Secara Lokal
 
 ### Prasyarat
 * Pastikan **Node.js** (v18+) dan npm telah terinstal di komputer Anda.
 
 ### Langkah-langkah
-1. **Klon Repositori**:
-   ```bash
-   git clone https://github.com/hanif-12-01/Bandung-part-2.git
-   cd Bandung-part-2
-   ```
-
-2. **Instal Dependensi**:
+1. **Instal Dependensi**:
    ```bash
    npm install
    ```
-
-3. **Konfigurasi Lingkungan (Environment Variables)**:
+2. **Konfigurasi Lingkungan (Environment Variables)**:
    Buat berkas `.env` di folder root dan masukkan API Key Gemini Anda:
    ```env
    GEMINI_API_KEY=isi_kunci_api_gemini_anda_di_sini
@@ -72,53 +89,17 @@ Aplikasi ini menggunakan aksen warna **Maroon khas Telkom University** yang diko
    ```
    *(Jika `.env` kosong atau API Key belum diset, aplikasi akan berjalan dalam mode **Demo/Mock Cerdas** secara otomatis tanpa terjadi crash).*
 
-4. **Jalankan Mode Pengembangan**:
+3. **Jalankan Mode Pengembangan**:
    ```bash
    npm run dev
    ```
    Aplikasi akan menyala di tautan: `http://localhost:3000`
 
-5. **Build dan Jalankan Mode Produksi**:
+4. **Build dan Jalankan Mode Produksi**:
    ```bash
    npm run build
-   npm run start
    ```
 
 ---
 
-## 📦 Panduan Melakukan Commit & Push ke GitHub
-
-Untuk menyimpan semua perubahan dan mengunggah kode terbaru ke repositori GitHub Anda (`https://github.com/hanif-12-01/Bandung-part-2`), ikuti urutan perintah Git berikut di terminal Anda:
-
-### 1. Periksa Status Perubahan
-Pastikan semua file yang dimodifikasi terdeteksi oleh Git:
-```bash
-git status
-```
-
-### 2. Tambahkan Semua Perubahan ke Staging
-```bash
-git add .
-```
-
-### 3. Buat Commit dengan Pesan Deskriptif
-```bash
-git commit -m "feat: implementasi landing page berbasis role, kustomisasi dashboard dinamis, dan perbaikan tipe backend"
-```
-
-### 4. Push Perubahan ke Repositori GitHub
-Unggah kode ke cabang utama (biasanya `main` atau `master`):
-```bash
-git push origin main
-```
-*(Catatan: Sesuaikan nama branch `main` dengan branch aktif Anda apabila menggunakan nama branch yang berbeda, misalnya `master` atau `development`).*
-
----
-
-## 📝 Format Berkas Penting
-* **Struktur Data**: [src/data.ts](file:///D:/LOMBA/BANDUNG%20TECNO%20PARK/PROTOTIPE/src/data.ts)
-* **Model Tipe TypeScript**: [src/types.ts](file:///D:/LOMBA/BANDUNG%20TECNO%20PARK/PROTOTIPE/src/types.ts)
-* **API Endpoints**: [server.ts](file:///D:/LOMBA/BANDUNG%20TECNO%20PARK/PROTOTIPE/server.ts)
-
----
 © 2026 CampusCare AI — Satu Pintu untuk Menemukan Layanan Kampus yang Tepat.

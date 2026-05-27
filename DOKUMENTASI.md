@@ -2,7 +2,7 @@
 
 CampusCare AI adalah platform *Smart Service Navigator* bertenaga AI yang membantu mahasiswa, dosen, dan pegawai universitas dalam menemukan layanan kampus secara cepat dan tepat sesuai dengan kendala atau kebutuhan mereka.
 
-Dokumen ini menjelaskan arsitektur sistem, struktur data, panduan desain UI/UX, alur navigasi berbasis peran (role-based), dan panduan lengkap untuk melakukan deploy ke GitHub.
+Dokumen ini menjelaskan arsitektur sistem, struktur data, panduan desain UI/UX, alur navigasi berbasis peran (role-based), persistensi state lokal, dan panduan menjalankan sistem.
 
 ---
 
@@ -13,19 +13,38 @@ Aplikasi ini dibangun menggunakan pola arsitektur **Single Page Application (SPA
 ```mermaid
 graph TD
     User([Civitas Akademika]) -->|Akses Halaman| LP[Landing Page]
-    LP -->|Pilih Peran| RoleSelect{Role Selection}
-    RoleSelect -->|Mahasiswa| DH_M[Dashboard Mahasiswa]
-    RoleSelect -->|Dosen| DH_D[Dashboard Dosen]
-    RoleSelect -->|Pegawai| DH_P[Dashboard Pegawai]
+    LP -->|Registrasi / Login Simulasi| Auth{Auth State}
+    Auth -->|Set Current User & Role| AppState[App.tsx State]
+    AppState -->|Pilih Peran| DH_M[Dashboard Mahasiswa]
+    AppState -->|Pilih Peran| DH_D[Dashboard Dosen]
+    AppState -->|Pilih Peran| DH_P[Dashboard Pegawai]
 
-    DH_M & DH_D & DH_P -->|Tanya AI Navigator| AI[AI Consultation API]
-    DH_M & DH_D & DH_P -->|Buat Laporan| AD[Auto-Drafter API]
+    DH_M & DH_D & DH_P -->|Tanya AI Navigator| AI[AI Consultation / AIKonsultasi]
+    DH_M & DH_D & DH_P -->|Lihat Prosedur| GD[Service Guidance / GuidelineDetail]
+    GD -->|Arahkan Data| AD[Auto-Drafter / BuatDraftLaporan]
+    DH_M & DH_D & DH_P -->|Riwayat & Status| RW[Riwayat / Riwayat]
     DH_P -->|Akses Khusus| ID[Insight Dashboard Admin]
 
     AI -->|Request| Server[Express Server /server.ts]
-    AD -->|Request| Server
     Server -->|Gemini SDK| GeminiAI[Google Gemini 3.5 Flash]
 ```
+
+---
+
+## 💾 State & Persistensi Data (LocalStorage)
+
+Aplikasi ini menggunakan penyimpanan lokal (`localStorage`) untuk mensimulasikan sistem basis data yang dinamis secara client-side, menjadikannya responsif tanpa memerlukan server database relasional:
+
+1. **Sesi Pengguna (`campus_care_current_user`)**:
+   - Menyimpan objek `UserInfo` (Nama, NIM/NIP, Email, Peran) setelah login atau register.
+   - Sesi bertahan saat halaman di-refresh, dengan tombol pintas *"Melanjutkan Sesi Sebelumnya"* di halaman depan.
+2. **Draf Laporan (`campus_care_saved_drafts`)**:
+   - Menyimpan seluruh berkas surat yang dirancang oleh civitas akademika.
+   - Sinkronisasi perubahan status draf ("Draft", "Tindak Lanjut", "Selesai") secara langsung melalui dropdown di tab Riwayat.
+3. **Riwayat Baca Panduan (`campus_care_viewed_guidelines`)**:
+   - Mencatat alur layanan kampus yang terakhir dibuka oleh pengguna untuk kemudahan akses kembali.
+4. **Bank Masalah Kampus (`campus_care_saved_problems`)**:
+   - Menyimpan daftar aduan kritis civitas akademika secara dinamis. Menambahkan aduan baru dari panel admin akan langsung memperbarui bank data ini.
 
 ---
 
@@ -37,6 +56,7 @@ Desain antarmuka CampusCare AI mengadopsi estetika modern, profesional, dan bers
 *   **Warna Latar Belakang**: `Off-White (#f8fafc / bg-slate-50)` - Mengurangi kelelahan mata dan memberikan kesan bersih.
 *   **Warna Teks Utama**: `Deep Navy / Charcoal (#0f172a / text-slate-900)` - Keterbacaan teks tingkat tinggi untuk konten administratif.
 *   **Aksen Kecerdasan Buatan (AI)**: `Teal/Cyan (#0d9488 / text-teal-600)` - Digunakan khusus untuk menyoroti fitur-fitur pintar asisten AI Navigator.
+*   **Glow & Glassmorphism**: Digunakan di dasbor admin gelap (`#0B1120`) untuk memberikan nuansa teknologi tingkat tinggi (premium feel).
 
 ---
 
@@ -58,11 +78,21 @@ Setiap pengguna yang masuk akan difilter kontennya secara otomatis berdasarkan p
 *   **Kategori Utama**: Administrasi Internal, IT & Sistem, Logistik & Fasilitas, SDM, Helpdesk Unit, Knowledge Base, Insight Admin.
 *   **Sapaan Awal AI**: Memfokuskan bantuan pada Nota Dinas, logistik ATK, slip gaji, cuti, atau resolusi tiket keluhan civitas.
 *   **Akses Khusus**: Menampilkan tombol menu **Insight Admin** untuk memonitor tren keluhan kampus secara waktu nyata (real-time).
-*   **Otomatisasi Surat**: Menggunakan kolom **NIP** dan mengarahkan draf surat ke Direktorat SDM atau Biro Umum.
 
 ---
 
-## 🛠️ Panduan Menjalankan Sistem Secara Lokal
+## 🕹️ Panduan Alur Demo Juri (Demo Flow Checklist)
+
+1. **Masuk ke Aplikasi**: Klik tombol **Quick Demo Login** untuk peran **Mahasiswa** di Landing Page.
+2. **Konsultasi AI**: Di tab **AI Navigator**, ketik keluhan *"UKT saya belum terverifikasi"*. Asisten AI akan merespons dan menampilkan kartu deteksi alur *"Pengajuan Keringanan & Cicilan UKT"*.
+3. **Membaca Prosedur**: Klik **Lihat Panduan** pada kartu solusi AI untuk membuka **Service Guidance**. Tinjau alur langkah-demi-langkah dan berkas persyaratannya.
+4. **Penyusunan Surat**: Klik **Buat Draft Laporan**. Detail profil mahasiswa (Nama, NIM, Email) akan terisi otomatis. Tulis deskripsi keluhan singkat, lalu klik **Simpan ke Riwayat**.
+5. **Manajemen Riwayat**: Masuk ke tab **Riwayat**, periksa surat yang telah tersimpan. Coba perbarui statusnya dari *"Draft"* menjadi *"Selesai"*.
+6. **Insight Dashboard Admin**: Logout dari profil Mahasiswa, lalu gunakan **Quick Demo Login** sebagai **Pegawai Kampus**. Masuk ke tab **Insight Admin** untuk memantau visualisasi grafik, melihat **Campus Problem Bank**, dan menguji CMS Knowledge Base.
+
+---
+
+## ⚙️ Panduan Menjalankan Sistem Secara Lokal
 
 1.  **Instalasi Node Modules**:
     ```bash
@@ -81,26 +111,6 @@ Setiap pengguna yang masuk akan difilter kontennya secara otomatis berdasarkan p
 4.  **Mode Kompilasi Produksi (Production Build)**:
     ```bash
     npm run build
-    npm run start
-    ```
-
----
-
-## 🐙 Panduan Deployment ke GitHub
-
-Untuk melakukan commit semua perubahan terbaru (termasuk fitur Landing Page dan perbaikan bug sistem) serta mengunggahnya ke repositori GitHub Anda, ikuti perintah Git berikut:
-
-1.  **Simpan Semua Perubahan**:
-    ```bash
-    git add .
-    ```
-2.  **Buat Pesan Commit Resmi**:
-    ```bash
-    git commit -m "feat: implementasi sistem navigator kampus berbasis role dan visualisasi grafik admin"
-    ```
-3.  **Unggah ke Cabang Utama**:
-    ```bash
-    git push origin main
     ```
 
 ---
